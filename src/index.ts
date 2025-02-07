@@ -14,6 +14,11 @@ app.use('*', errorMiddleware)
 
 // JWT 认证中间件
 app.use('/api/*', async (c, next) => {
+  const path = new URL(c.req.url).pathname
+  const publicPaths = ['/api/auth/register', '/api/auth/login']
+  if (publicPaths.includes(path)) {
+    return next()
+  }
   const jwtMiddleware = jwt({
     secret: c.env.JWT_SECRET
   })
@@ -21,7 +26,7 @@ app.use('/api/*', async (c, next) => {
 })
 
 // 路由
-app.route('/auth', authRouter)
+app.route('api/auth', authRouter)
 app.route('/api/pools', cookiePoolRouter)
 app.route('/api/shares', shareRouter)
 
