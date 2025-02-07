@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cookie-cloudflare",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-02-07",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cookie_db",
+      "database_id": "7a06263c-41c5-4baa-8245-a834066c61d3"
+    }
+  ]
+}
