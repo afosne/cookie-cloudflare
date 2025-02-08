@@ -1,10 +1,9 @@
 import { Hono } from 'hono'
-import { requireOwnerOrAdmin } from '../middleware/auth'
 
 const router = new Hono()
 
 // 添加共享用户
-router.post('/:poolId/users', requireOwnerOrAdmin, async (c) => {
+router.post('/:poolId/users', async (c) => {
   const { poolId } = c.req.param()
   const { userId } = await c.req.json()
   
@@ -18,7 +17,7 @@ router.post('/:poolId/users', requireOwnerOrAdmin, async (c) => {
 })
 
 // 移除共享用户
-router.delete('/:poolId/users/:userId', requireOwnerOrAdmin, async (c) => {
+router.delete('/:poolId/users/:userId', async (c) => {
   const { poolId, userId } = c.req.param()
   
   await c.env.DB.prepare(
@@ -31,7 +30,7 @@ router.delete('/:poolId/users/:userId', requireOwnerOrAdmin, async (c) => {
 })
 
 // 获取池的共享用户列表
-router.get('/:poolId/users', requireOwnerOrAdmin, async (c) => {
+router.get('/:poolId/users', async (c) => {
   const { poolId } = c.req.param()
   
   const users = await c.env.DB.prepare(

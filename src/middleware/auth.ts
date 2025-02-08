@@ -9,14 +9,3 @@ export async function requireAdmin(c: Context, next: Next) {
   }
   await next()
 }
-
-export async function requireOwnerOrAdmin(c: Context, next: Next) {
-  const user = c.get('jwtPayload')
-  const resourceOwnerId = c.get('resourceOwnerId')
-  console.log(user, resourceOwnerId)
-  if (user.role !== 'admin' && user.id !== resourceOwnerId) {
-    throw new HTTPException(403, { message: 'Unauthorized access' })
-
-  }
-  await next()
-}

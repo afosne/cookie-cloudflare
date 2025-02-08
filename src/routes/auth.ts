@@ -48,17 +48,17 @@ router.post('/register', async (c) => {
   const { username, password } = await c.req.json()
   
   if (!username || !password) {
-    throw new HTTPException(400, { message: 'Username and password are required' })
+    throw new HTTPException(400, { message: '用户或者密码缺失' })
   }
 
   // 验证用户名长度
   if (username.length < 3 || username.length > 30) {
-    throw new HTTPException(400, { message: 'Username must be between 3 and 30 characters' })
+    throw new HTTPException(400, { message: '用户名必须大于三位或者小于30位' })
   }
 
   // 验证密码强度
   if (password.length < 6) {
-    throw new HTTPException(400, { message: 'Password must be at least 6 characters long' })
+    throw new HTTPException(400, { message: '密码必须大于6位' })
   }
   
   const hashedPassword = await hashPassword(password)
@@ -72,7 +72,7 @@ router.post('/register', async (c) => {
     .first()
 
     if (existingUser) {
-      throw new HTTPException(400, { message: 'Username already exists' })
+      throw new HTTPException(400, { message: '用户名已存在' })
     }
 
     // 创建新用户
@@ -83,7 +83,7 @@ router.post('/register', async (c) => {
     .run()
     
     if (!result.success) {
-      throw new HTTPException(500, { message: 'Failed to create user' })
+      throw new HTTPException(500, { message: '创建用户失败' })
     }
     
     return c.json({ 
@@ -103,7 +103,7 @@ router.post('/login', async (c) => {
   const { username, password } = await c.req.json()
   
   if (!username || !password) {
-    throw new HTTPException(400, { message: 'Username and password are required' })
+    throw new HTTPException(400, { message: '用户名或者密码缺失' })
   }
 
   try {
@@ -114,7 +114,7 @@ router.post('/login', async (c) => {
     .first()
     
     if (!user || !await comparePasswords(password, user.password)) {
-      throw new HTTPException(401, { message: 'Invalid credentials' })
+      throw new HTTPException(401, { message: '账户或者密码错误' })
     }
     
     // 创建 JWT token
@@ -153,7 +153,7 @@ router.get('/me', async (c) => {
     .first()
 
     if (!userData) {
-      throw new HTTPException(404, { message: 'User not found' })
+      throw new HTTPException(404, { message: '未查询到用户' })
     }
 
     return c.json(userData)
@@ -171,11 +171,11 @@ router.put('/password', async (c) => {
   const { currentPassword, newPassword } = await c.req.json()
 
   if (!currentPassword || !newPassword) {
-    throw new HTTPException(400, { message: 'Current password and new password are required' })
+    throw new HTTPException(400, { message: '密码或者新密码缺失' })
   }
 
   if (newPassword.length < 6) {
-    throw new HTTPException(400, { message: 'New password must be at least 6 characters long' })
+    throw new HTTPException(400, { message: '新密码必须大于6位' })
   }
 
   try {
@@ -186,12 +186,12 @@ router.put('/password', async (c) => {
     .first()
 
     if (!userData) {
-      throw new HTTPException(404, { message: 'User not found' })
+      throw new HTTPException(404, { message: '用户未找到' })
     }
 
     const isPasswordValid = await comparePasswords(currentPassword, userData.password)
     if (!isPasswordValid) {
-      throw new HTTPException(401, { message: 'Current password is incorrect' })
+      throw new HTTPException(401, { message: '密码错误' })
     }
 
     const hashedNewPassword = await hashPassword(newPassword)
@@ -203,7 +203,7 @@ router.put('/password', async (c) => {
     .run()
 
     return c.json({ 
-      message: 'Password updated successfully',
+      message: '密码更新成功',
       success: true
     })
   } catch (err) {
