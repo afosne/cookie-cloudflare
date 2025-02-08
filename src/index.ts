@@ -5,10 +5,10 @@ import { cookiePoolRouter } from './routes/cookiePool'
 import { shareRouter } from './routes/share'
 import { errorMiddleware } from './middleware/error'
 import { Env } from './models/bindings'
-
+import { logger } from 'hono/logger'
 
 const app = new Hono<{ Bindings: Env }>()
-
+app.use(logger())
 // 错误处理中间件
 app.use('*', errorMiddleware)
 

@@ -6,16 +6,16 @@ const router = new Hono()
 // 创建新的 cookie 池
 router.post('/', async (c) => {
   const user = c.get('jwtPayload')
-  const { name, cookies, isPublic } = await c.req.json()
-  
+  const { name, domain, cookies, isPublic } = await c.req.json()
+
   const result = await c.env.DB.prepare(
-    `INSERT INTO cookie_pools (name, cookies, owner_id, is_public)
-     VALUES (?, ?, ?, ?)`
+    `INSERT INTO cookie_pools (name, domain, cookies, owner_id, is_public)
+     VALUES (?, ?, ?, ?, ?)`
   )
-  .bind(name, cookies, user.id, isPublic)
+  .bind(name, domain, cookies, user.id, isPublic)
   .run()
   
-  return c.json({ id: result.lastRowId })
+  return c.json({ id: result.leastID, message: 'Pool created successfully' }, 200)
 })
 
 // 获取所有可访问的 cookie 池
@@ -38,14 +38,14 @@ router.get('/', async (c) => {
 // 更新 cookie 池
 router.put('/:id', requireOwnerOrAdmin, async (c) => {
   const { id } = c.req.param()
-  const { name, cookies, isPublic } = await c.req.json()
+  const { name, domain, cookies, isPublic } = await c.req.json()
   
   await c.env.DB.prepare(
     `UPDATE cookie_pools 
-     SET name = ?, cookies = ?, is_public = ?
+     SET name = ?, domain = ?, cookies = ?, is_public = ?
      WHERE id = ?`
   )
-  .bind(name, cookies, isPublic, id)
+  .bind(name, domain, cookies, isPublic, id)
   .run()
   
   return c.json({ message: 'Pool updated successfully' })

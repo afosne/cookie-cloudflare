@@ -9,6 +9,7 @@ CREATE TABLE users (
 CREATE TABLE cookie_pools (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
+  domain TEXT NOT NULL,
   cookies TEXT NOT NULL,
   owner_id INTEGER NOT NULL,
   is_public BOOLEAN DEFAULT FALSE,
