@@ -202,10 +202,7 @@ router.put('/password', async (c) => {
     .bind(hashedNewPassword, user.id)
     .run()
 
-    return c.json({ 
-      message: '密码更新成功',
-      success: true
-    })
+    return c.json({ message: '密码更新成功',success: true})
   } catch (err) {
     if (err instanceof HTTPException) {
       throw err
