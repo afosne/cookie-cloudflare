@@ -36,9 +36,9 @@ router.get('/', async (c) => {
 })
 
 // 更新路由处理程序
-router.post('/:poolId', async (c) => {
-  const { poolId } = c.req.param()
-  const { name, domain, cookies, isPublic } = await c.req.json()
+router.post('/put', async (c) => {
+
+  const { poolId, name, domain, cookies, isPublic } = await c.req.json()
   
   const permission = await checkPoolPermission(c, poolId)
   if (!permission.allowed) {
@@ -57,13 +57,17 @@ router.post('/:poolId', async (c) => {
 })
 
 // 删除路由处理程序
-router.post('/:poolId', async (c) => {
-  const { poolId } = c.req.param()
+router.post('/del', async (c) => {
+  const { poolId } = await c.req.json()
   
   const permission = await checkPoolPermission(c, poolId)
   if (!permission.allowed) {
     return c.json({message: '获取权限错误' }, 403)
   }
+  //首先删除共享约束
+ await c.env.DB.prepare('DELETE FROM shares WHERE pool_id = ?')
+    .bind(poolId)
+    .run()
 
   await c.env.DB.prepare('DELETE FROM cookie_pools WHERE id = ?')
     .bind(poolId)
