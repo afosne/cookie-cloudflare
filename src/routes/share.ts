@@ -26,7 +26,7 @@ router.post('/users/add', async (c) => {
     .bind(poolId, userId)
     .run()
     
-    return c.json({ message: '创建分享成功' })
+    return c.json({ message: '创建分享用户成功' })
 })
 
 // 移除共享用户
@@ -44,7 +44,7 @@ router.post('/users/del', async (c) => {
   .bind(poolId, userId)
   .run()
   
-  return c.json({ message: 'Share removed successfully' })
+  return c.json({ message: '删除分享用户成功' })
 })
 
 // 获取池的共享用户列表

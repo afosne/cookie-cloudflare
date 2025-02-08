@@ -15,7 +15,7 @@ router.post('/', async (c) => {
     .bind(name, domain, cookies, user.id, isPublic)
     .run()
 
-  return c.json({ id: result.leastID, message: 'Pool created successfully' }, 200)
+  return c.json({ id: result.leastID, message: '数据创建成功' }, 200)
 })
 
 // 获取所有可访问的 cookie 池
