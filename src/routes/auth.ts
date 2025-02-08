@@ -166,7 +166,7 @@ router.get('/me', async (c) => {
 })
 
 // 更改密码
-router.put('/password', async (c) => {
+router.post('/password', async (c) => {
   const user = c.get('jwtPayload')
   const { currentPassword, newPassword } = await c.req.json()
 
