@@ -2,8 +2,8 @@ API 端点概述:
 
 认证相关:
 
-POST /api//auth/register - 注册新用户
-POST /api//auth/login - 用户登录
+POST /api/auth/register - 注册新用户
+POST /api/auth/login - 用户登录
 Cookie池管理:
 
 POST /api/pools - 创建新的cookie池
