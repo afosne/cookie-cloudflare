@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { checkPoolPermission } from '../middleware/pool'
 
 const router = new Hono()
 
@@ -35,11 +36,11 @@ router.get('/', async (c) => {
 })
 
 // 更新路由处理程序
-router.put('/:id', async (c) => {
-  const { id } = c.req.param()
+router.post('/:poolId', async (c) => {
+  const { poolId } = c.req.param()
   const { name, domain, cookies, isPublic } = await c.req.json()
   
-  const permission = await checkPoolPermission(c, id)
+  const permission = await checkPoolPermission(c, poolId)
   if (!permission.allowed) {
     return c.json({message: '获取权限错误' }, 403)
   }
@@ -49,48 +50,25 @@ router.put('/:id', async (c) => {
      SET name = ?, domain = ?, cookies = ?, is_public = ?
      WHERE id = ?`
   )
-    .bind(name, domain, cookies, isPublic, id)
+    .bind(name, domain, cookies, isPublic, poolId)
     .run()
 
-  return c.json({ message: '更新数据成功' })
+  return c.json({ message: '更新数据成功' },200)
 })
 
 // 删除路由处理程序
-router.delete('/:id', async (c) => {
-  const { id } = c.req.param()
+router.post('/:poolId', async (c) => {
+  const { poolId } = c.req.param()
   
-  const permission = await checkPoolPermission(c, id)
+  const permission = await checkPoolPermission(c, poolId)
   if (!permission.allowed) {
     return c.json({message: '获取权限错误' }, 403)
   }
 
   await c.env.DB.prepare('DELETE FROM cookie_pools WHERE id = ?')
-    .bind(id)
+    .bind(poolId)
     .run()
 
-  return c.json({ message: 'Pool deleted successfully' })
+  return c.json({ message: '删除数据成功' },200)
 })
-
-// 添加权限检查的公共方法
-async function checkPoolPermission(c: any, poolId: string) {
-  // 检查cookie池是否存在
-  const pool = await c.env.DB.prepare('SELECT * FROM cookie_pools WHERE id = ?')
-    .bind(poolId)
-    .first()
-  
-  if (!pool) {
-    return { allowed: false, error: { message: 'cookie 不存在', status: 404 } }
-  }
-
-  // 判断是否属于登录用户或者管理员
-  const isOwner = pool.owner_id === c.get('jwtPayload').id
-  const isAdmin = c.get('jwtPayload').role === 'admin'
-
-  if (!isOwner && !isAdmin) {
-    return { allowed: false, error: { message: '无权操作', status: 403 } }
-  }
-
-  return { allowed: true, pool }
-}
-
 export { router as cookiePoolRouter }
