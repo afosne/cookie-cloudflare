@@ -7,8 +7,8 @@ POST /api/auth/login - 用户登录
 GET /api/auth/me - 获取用户信息
 Cookie池管理:
 
-POST /api/pools - 创建新的cookie池
-POST /api/pools - 获取可访问的cookie池列表
+POST /api/pools/create - 创建新的cookie池
+POST /api/pools/get - 获取可访问的cookie池列表
 POST /api/pools/put - 更新cookie池
 POST /api/pools/del - 删除cookie池
 共享管理:

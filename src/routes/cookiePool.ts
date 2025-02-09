@@ -67,6 +67,41 @@ router.post('/get', async (c) => {
     return c.json({ message: '获取失败' }, 500)
   }
 })
+//随机获取一个cookie池
+router.post('/getone', async (c) => {
+  const user = c.get('jwtPayload')
+  const { domain } = await c.req.json()
+
+  if (!domain) {
+    return c.json({ message: '缺少域名参数' }, 400)
+  }
+
+  try {
+    if (user.role === 'admin') {
+      const pools = await c.env.DB.prepare('SELECT * FROM cookie_pools WHERE domain = ? ORDER BY RANDOM() LIMIT 1')
+        .bind(domain)
+        .first()
+      return c.json(pools)
+    }
+
+    const pools = await c.env.DB.prepare(
+      `SELECT cp.* FROM cookie_pools cp
+       LEFT JOIN shares s ON cp.id = s.pool_id
+       WHERE (cp.is_public = 1 
+       OR cp.owner_id = ?
+       OR s.user_id = ?)
+       AND cp.domain = ?
+       ORDER BY RANDOM() LIMIT 1`
+    )
+      .bind(user.id, user.id, domain)
+      .first()
+    return c.json(pools)
+  } catch (error) {
+    console.error('Get cookie pools error:', error)
+    return c.json({ message: '获取失败' }, 500)
+  }
+})
+
 // 更新路由处理程序
 router.post('/put', async (c) => {
 
