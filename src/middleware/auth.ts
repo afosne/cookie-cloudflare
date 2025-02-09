@@ -32,7 +32,7 @@ export async function hashPassword(password: string): Promise<string> {
     return btoa(String.fromCharCode(...result))
   }
   
-  async function comparePasswords(password: string, storedHash: string): Promise<boolean> {
+  export async function comparePasswords(password: string, storedHash: string): Promise<boolean> {
     const hashData = Uint8Array.from(atob(storedHash), c => c.charCodeAt(0))
     const salt = hashData.slice(0, 16)
     const storedHashPart = hashData.slice(16)

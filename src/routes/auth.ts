@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { sign } from 'hono/jwt'
 import { HTTPException } from 'hono/http-exception'
-import { hashPassword } from '../middleware/auth'
+import { comparePasswords, hashPassword } from '../middleware/auth'
 
 const router = new Hono()
 
