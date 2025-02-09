@@ -40,6 +40,29 @@ router.get('/', async (c) => {
 
   return c.json(pools)
 })
+// 获取该域名下的所有cookie池
+router.post('/', async (c) => {
+  const user = c.get('jwtPayload')
+  const { domain } = await c.req.json()
+  //先判断是否为管理员
+  if (user.role === 'admin') {
+    const pools = await c.env.DB.prepare('SELECT * FROM cookie_pools WHERE domain = ?')
+      .bind(domain)
+      .all()
+    return c.json(pools)
+  }
+  const pools = await c.env.DB.prepare(
+    `SELECT cp.* FROM cookie_pools cp
+     LEFT JOIN shares s ON cp.id = s.pool_id
+     WHERE cp.is_public = 1 
+     OR cp.owner_id = ?
+     OR s.user_id = ?
+     AND cp.domain = ?`
+  )
+    .bind(user.id, user.id, domain)
+    .all()
+  return c.json(pools)
+})
 
 // 更新路由处理程序
 router.post('/put', async (c) => {
