@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { jwt } from 'hono/jwt'
+import { cors } from 'hono/cors'
 import { userRouter } from './routes/user'
 import { cookiePoolRouter } from './routes/cookiePool'
 import { shareRouter } from './routes/share'
@@ -9,6 +10,7 @@ import { logger } from 'hono/logger'
 
 const app = new Hono<{ Bindings: Env }>()
 app.use(logger())
+app.use('*', cors())
 // 错误处理中间件
 app.use('*', errorMiddleware)
 
