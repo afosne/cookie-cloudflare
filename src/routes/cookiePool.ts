@@ -16,7 +16,13 @@ router.post('/create', async (c) => {
   try {
     // 确保 cookies 是字符串
     const cookiesStr = typeof cookies === 'string' ? cookies : JSON.stringify(cookies)
-
+    // 插入数据名字不允许重复
+    const checkName = await c.env.DB.prepare('SELECT name FROM cookie_pools WHERE name = ?')
+      .bind(name)
+      .get()
+    if (checkName) {
+      return c.json({ message: '该名称已存在' }, 400)
+    }
     const result = await c.env.DB.prepare(
       `INSERT INTO cookie_pools (name, domain, cookies, owner_id, is_public)
        VALUES (?, ?, ?, ?, ?)`
@@ -32,7 +38,7 @@ router.post('/create', async (c) => {
 
     return c.json({ id: result.lastRowId, message: '数据创建成功' }, 200)
   } catch (error) {
-    console.error('Create cookie pool error:', error)
+    console.error('数据创建失败', error)
     return c.json({ message: '创建失败' }, 500)
   }
 })
@@ -60,7 +66,7 @@ router.post('/put', async (c) => {
 
     return c.json({ message: '更新数据成功' }, 200)
   } catch (error) {
-    console.error('Update cookie pool error:', error)
+    console.error('更新数据失败', error)
     return c.json({ message: '更新失败' }, 500)
   }
 })
