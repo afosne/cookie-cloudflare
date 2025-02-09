@@ -4,44 +4,69 @@ import { checkPoolPermission } from '../middleware/pool'
 const router = new Hono()
 
 // 创建新的 cookie 池
-router.post('/', async (c) => {
+router.post('/create', async (c) => {
   const user = c.get('jwtPayload')
   const { name, domain, cookies, isPublic } = await c.req.json()
 
-  const result = await c.env.DB.prepare(
-    `INSERT INTO cookie_pools (name, domain, cookies, owner_id, is_public)
-     VALUES (?, ?, ?, ?, ?)`
-  )
-    .bind(name, domain, cookies, user.id, isPublic)
-    .run()
+  // 验证必需参数
+  if (!name || !domain || !cookies) {
+    return c.json({ message: '缺少必需参数' }, 400)
+  }
 
-  return c.json({ id: result.leastID, message: '数据创建成功' }, 200)
+  try {
+    const result = await c.env.DB.prepare(
+      `INSERT INTO cookie_pools (name, domain, cookies, owner_id, is_public)
+       VALUES (?, ?, ?, ?, ?)`
+    )
+      .bind(
+        name, 
+        domain, 
+        JSON.stringify(cookies), // 确保 cookies 是字符串
+        user.id,
+        isPublic === true ? 1 : 0 // 确保 isPublic 是布尔值转换为数字
+      )
+      .run()
+
+    return c.json({ id: result.lastRowId, message: '数据创建成功' }, 200)
+  } catch (error) {
+    console.error('Create cookie pool error:', error)
+    return c.json({ message: '创建失败' }, 500)
+  }
 })
 
 // 获取该域名下的所有cookie池
-router.post('/', async (c) => {
+router.post('/get', async (c) => {
   const user = c.get('jwtPayload')
   const { domain } = await c.req.json()
-  //先判断是否为管理员
-  if (user.role === 'admin') {
-    const pools = await c.env.DB.prepare('SELECT * FROM cookie_pools WHERE domain = ?')
-      .bind(domain)
+
+  if (!domain) {
+    return c.json({ message: '缺少域名参数' }, 400)
+  }
+
+  try {
+    if (user.role === 'admin') {
+      const pools = await c.env.DB.prepare('SELECT * FROM cookie_pools WHERE domain = ?')
+        .bind(domain)
+        .all()
+      return c.json(pools)
+    }
+
+    const pools = await c.env.DB.prepare(
+      `SELECT cp.* FROM cookie_pools cp
+       LEFT JOIN shares s ON cp.id = s.pool_id
+       WHERE (cp.is_public = 1 
+       OR cp.owner_id = ?
+       OR s.user_id = ?)
+       AND cp.domain = ?`
+    )
+      .bind(user.id, user.id, domain)
       .all()
     return c.json(pools)
+  } catch (error) {
+    console.error('Get cookie pools error:', error)
+    return c.json({ message: '获取失败' }, 500)
   }
-  const pools = await c.env.DB.prepare(
-    `SELECT cp.* FROM cookie_pools cp
-     LEFT JOIN shares s ON cp.id = s.pool_id
-     WHERE cp.is_public = 1 
-     OR cp.owner_id = ?
-     OR s.user_id = ?
-     AND cp.domain = ?`
-  )
-    .bind(user.id, user.id, domain)
-    .all()
-  return c.json(pools)
 })
-
 // 更新路由处理程序
 router.post('/put', async (c) => {
 
