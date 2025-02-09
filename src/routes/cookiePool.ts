@@ -67,6 +67,7 @@ router.post('/get', async (c) => {
     return c.json({ message: '获取失败' }, 500)
   }
 })
+
 //随机获取一个cookie池
 router.post('/getone', async (c) => {
   const user = c.get('jwtPayload')
