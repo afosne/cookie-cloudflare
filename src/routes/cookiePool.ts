@@ -3,7 +3,7 @@ import { checkPoolPermission } from '../middleware/pool'
 
 const router = new Hono()
 
-// 创建新的 cookie 池
+// 创建新的 cookie 池部分修改
 router.post('/create', async (c) => {
   const user = c.get('jwtPayload')
   const { name, domain, cookies, isPublic } = await c.req.json()
@@ -14,23 +14,54 @@ router.post('/create', async (c) => {
   }
 
   try {
+    // 确保 cookies 是字符串
+    const cookiesStr = typeof cookies === 'string' ? cookies : JSON.stringify(cookies)
+
     const result = await c.env.DB.prepare(
       `INSERT INTO cookie_pools (name, domain, cookies, owner_id, is_public)
        VALUES (?, ?, ?, ?, ?)`
     )
-      .bind(
-        name, 
-        domain, 
-        JSON.stringify(cookies), // 确保 cookies 是字符串
-        user.id,
-        isPublic === true ? 1 : 0 // 确保 isPublic 是布尔值转换为数字
-      )
-      .run()
+    .bind(
+      name, 
+      domain, 
+      cookiesStr,  // 使用处理后的字符串
+      user.id,
+      isPublic === true ? 1 : 0
+    )
+    .run()
 
     return c.json({ id: result.lastRowId, message: '数据创建成功' }, 200)
   } catch (error) {
     console.error('Create cookie pool error:', error)
     return c.json({ message: '创建失败' }, 500)
+  }
+})
+
+// 更新路由处理程序部分修改
+router.post('/put', async (c) => {
+  const { poolId, name, domain, cookies, isPublic } = await c.req.json()
+  
+  const permission = await checkPoolPermission(c, poolId)
+  if (!permission.allowed) {
+    return c.json({message: '获取权限错误' }, 403)
+  }
+
+  try {
+    // 确保 cookies 是字符串
+    const cookiesStr = typeof cookies === 'string' ? cookies : JSON.stringify(cookies)
+
+    await c.env.DB.prepare(
+      `UPDATE cookie_pools 
+       SET name = ?, domain = ?, cookies = ?, is_public = ?
+       WHERE id = ?`
+    )
+    .bind(name, domain, cookiesStr, isPublic ? 1 : 0, poolId)
+    .run()
+
+    return c.json({ message: '更新数据成功' }, 200)
+  } catch (error) {
+    console.error('Update cookie pool error:', error)
+    return c.json({ message: '更新失败' }, 500)
   }
 })
 
@@ -50,9 +81,9 @@ router.post('/get', async (c) => {
         .all()
       return c.json(pools)
     }
-
+  //不查询cookies字段
     const pools = await c.env.DB.prepare(
-      `SELECT cp.* FROM cookie_pools cp
+      `SELECT cp.id,cp.name,cp.domain,cp.owner_id,cp.is_public FROM cookie_pools cp
        LEFT JOIN shares s ON cp.id = s.pool_id
        WHERE (cp.is_public = 1 
        OR cp.owner_id = ?
