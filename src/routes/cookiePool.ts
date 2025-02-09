@@ -21,6 +21,12 @@ router.post('/', async (c) => {
 // 获取所有可访问的 cookie 池
 router.get('/', async (c) => {
   const user = c.get('jwtPayload')
+  //先判断是否为管理员
+  if (user.role === 'admin') {
+    const pools = await c.env.DB.prepare('SELECT * FROM cookie_pools')
+      .all()
+    return c.json(pools)
+  }
 
   const pools = await c.env.DB.prepare(
     `SELECT cp.* FROM cookie_pools cp
