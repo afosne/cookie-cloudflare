@@ -172,4 +172,4 @@ router.post('/password', async (c) => {
   }
 })
 
-export { router as authRouter }
+export { router as userRouter }

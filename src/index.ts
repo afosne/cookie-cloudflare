@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { jwt } from 'hono/jwt'
-import { authRouter } from './routes/auth'
+import { userRouter } from './routes/user'
 import { cookiePoolRouter } from './routes/cookiePool'
 import { shareRouter } from './routes/share'
 import { errorMiddleware } from './middleware/error'
@@ -26,7 +26,7 @@ app.use('/api/*', async (c, next) => {
 })
 
 // 路由
-app.route('api/auth', authRouter)
+app.route('api/auth', userRouter)
 app.route('/api/pools', cookiePoolRouter)
 app.route('/api/shares', shareRouter)
 
