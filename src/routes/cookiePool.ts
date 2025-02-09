@@ -3,7 +3,6 @@ import { checkPoolPermission } from '../middleware/pool'
 
 const router = new Hono()
 
-// 创建新的 cookie 池部分修改
 router.post('/create', async (c) => {
   const user = c.get('jwtPayload')
   const { name, domain, cookies, isPublic } = await c.req.json()
@@ -16,33 +15,47 @@ router.post('/create', async (c) => {
   try {
     // 确保 cookies 是字符串
     const cookiesStr = typeof cookies === 'string' ? cookies : JSON.stringify(cookies)
-    // 插入数据名字不允许重复
-    const checkName = await c.env.DB.prepare('SELECT name FROM cookie_pools WHERE name = ?')
-      .bind(name)
-      .get()
-    if (checkName) {
-      return c.json({ message: '该名称已存在' }, 400)
+    
+    // 检查用户是否存在
+    const userExists = await c.env.DB.prepare('SELECT id FROM users WHERE id = ?')
+      .bind(user.id)
+      .first()
+
+    if (!userExists) {
+      return c.json({ message: '用户不存在' }, 404)
     }
+
+    // 检查是否存在同名记录
+    const checkName = await c.env.DB.prepare('SELECT * FROM cookie_pools WHERE name = ?')
+      .bind(name)
+      .first()
+
+    if (checkName) {
+//返回错误信息
+      return c.json({ message: '记录已存在' }, 409)
+    }
+
+    // 插入新记录
     const result = await c.env.DB.prepare(
       `INSERT INTO cookie_pools (name, domain, cookies, owner_id, is_public)
        VALUES (?, ?, ?, ?, ?)`
     )
-    .bind(
-      name, 
-      domain, 
-      cookiesStr,  // 使用处理后的字符串
-      user.id,
-      isPublic === true ? 1 : 0
-    )
+    .bind(name, domain, cookiesStr, user.id, isPublic === true ? 1 : 0)
     .run()
 
-    return c.json({ id: result.lastRowId, message: '数据创建成功' }, 200)
+    return c.json({ 
+      id: result.lastRowId, 
+      message: '数据创建成功' 
+    }, 200)
+
   } catch (error) {
-    console.error('数据创建失败', error)
-    return c.json({ message: '创建失败' }, 500)
+    console.error('数据创建失败:', error)
+    return c.json({ 
+      message: '创建失败',
+      error: error.message 
+    }, 500)
   }
 })
-
 // 更新路由处理程序部分修改
 router.post('/put', async (c) => {
   const { poolId, name, domain, cookies, isPublic } = await c.req.json()
