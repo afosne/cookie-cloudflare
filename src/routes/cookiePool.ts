@@ -18,28 +18,6 @@ router.post('/', async (c) => {
   return c.json({ id: result.leastID, message: '数据创建成功' }, 200)
 })
 
-// 获取所有可访问的 cookie 池
-router.get('/', async (c) => {
-  const user = c.get('jwtPayload')
-  //先判断是否为管理员
-  if (user.role === 'admin') {
-    const pools = await c.env.DB.prepare('SELECT * FROM cookie_pools')
-      .all()
-    return c.json(pools)
-  }
-
-  const pools = await c.env.DB.prepare(
-    `SELECT cp.* FROM cookie_pools cp
-     LEFT JOIN shares s ON cp.id = s.pool_id
-     WHERE cp.is_public = 1 
-     OR cp.owner_id = ?
-     OR s.user_id = ?`
-  )
-    .bind(user.id, user.id)
-    .all()
-
-  return c.json(pools)
-})
 // 获取该域名下的所有cookie池
 router.post('/', async (c) => {
   const user = c.get('jwtPayload')
