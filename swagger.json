@@ -64,10 +64,6 @@
         "CookiePool": {
           "type": "object",
           "properties": {
-            "id": {
-              "type": "integer",
-              "description": "Cookie pool ID."
-            },
             "name": {
               "type": "string",
               "description": "Cookie pool name."
@@ -79,24 +75,6 @@
             "cookies": {
               "type": "string",
               "description": "Cookies in string format."
-            },
-            "owner_id": {
-              "type": "integer",
-              "description": "ID of the user who owns the cookie pool."
-            },
-            "is_public": {
-              "type": "boolean",
-              "description": "Indicates if the cookie pool is public (1) or private (0)."
-            },
-            "created_at": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Creation timestamp."
-            },
-            "updated_at": {
-              "type": "string",
-              "format": "date-time",
-              "description": "Last update timestamp."
             }
           }
         },
@@ -394,7 +372,7 @@
           }
         }
       },
-      "/api/pools/getone": {
+      "/api/pools/id": {
         "post": {
           "summary": "Get a single accessible cookie pool for a domain.",
           "tags": [
@@ -412,8 +390,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "domain": {
-                      "type": "string"
+                    "poolId": {
+                      "type": "integer"
                     }
                   }
                 }

@@ -118,40 +118,36 @@ router.post('/get', async (c) => {
   }
 })
 
-//随机获取一个cookie池
-router.post('/getone', async (c) => {
+//更具cookie池id获取cookie池
+router.post('/id', async (c) => {
+  const { poolId } = await c.req.json()
   const user = c.get('jwtPayload')
-  const { domain } = await c.req.json()
-
-  if (!domain) {
-    return c.json({ message: '缺少域名参数' }, 400)
-  }
 
   try {
     if (user.role === 'admin') {
-      const pools = await c.env.DB.prepare('SELECT * FROM cookie_pools WHERE domain = ? ORDER BY RANDOM() LIMIT 1')
-        .bind(domain)
+      const pools = await c.env.DB.prepare('SELECT * FROM cookie_pools WHERE id = ?')
+        .bind(poolId)
         .first()
       return c.json(pools)
     }
-
+    //查询自己或者公共的cookie池 只获取 name domain cookies
     const pools = await c.env.DB.prepare(
-      `SELECT cp.* FROM cookie_pools cp
+      `SELECT cp.name,cp.domain,cp.cookies FROM cookie_pools cp
        LEFT JOIN shares s ON cp.id = s.pool_id
        WHERE (cp.is_public = 1 
        OR cp.owner_id = ?
        OR s.user_id = ?)
-       AND cp.domain = ?
-       ORDER BY RANDOM() LIMIT 1`
+       AND cp.id = ?`
     )
-      .bind(user.id, user.id, domain)
+      .bind(user.id, user.id, poolId)
       .first()
     return c.json(pools)
   } catch (error) {
-    console.error('Get cookie pools error:', error)
+    console.error('Get cookie pool error:', error)
     return c.json({ message: '获取失败' }, 500)
   }
 })
+
 
 // 更新路由处理程序
 router.post('/put', async (c) => {
