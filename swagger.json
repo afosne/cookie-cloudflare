@@ -1,0 +1,657 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Cookie Pool Management API",
+      "version": "1.0.0",
+      "description": "API documentation for managing cookie pools and user authentication."
+    },
+    "servers": [
+      {
+        "url": "http://127.0.0.1:8787"
+      }
+    ],
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
+      "schemas": {
+        "ApiResponse": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "Response message."
+            },
+            "success": {
+              "type": "boolean",
+              "description": "Indicates if the operation was successful."
+            }
+          }
+        },
+        "AuthUser": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "User ID."
+            },
+            "username": {
+              "type": "string",
+              "description": "Username."
+            },
+            "role": {
+              "type": "string",
+              "description": "User role."
+            }
+          }
+        },
+        "AuthResponse": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string",
+              "description": "JWT token for authentication."
+            },
+            "user": {
+              "$ref": "#/components/schemas/AuthUser"
+            }
+          }
+        },
+        "CookiePool": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Cookie pool ID."
+            },
+            "name": {
+              "type": "string",
+              "description": "Cookie pool name."
+            },
+            "domain": {
+              "type": "string",
+              "description": "Domain associated with the cookie pool."
+            },
+            "cookies": {
+              "type": "string",
+              "description": "Cookies in string format."
+            },
+            "owner_id": {
+              "type": "integer",
+              "description": "ID of the user who owns the cookie pool."
+            },
+            "is_public": {
+              "type": "boolean",
+              "description": "Indicates if the cookie pool is public (1) or private (0)."
+            },
+            "created_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Creation timestamp."
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Last update timestamp."
+            }
+          }
+        },
+        "CookiePoolListResponse": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean"
+            },
+            "meta": {
+              "type": "object",
+              "description": "Metadata about the query.",
+              "properties": {
+                "served_by": {
+                  "type": "string"
+                },
+                "duration": {
+                  "type": "integer"
+                },
+                "changes": {
+                  "type": "integer"
+                },
+                "last_row_id": {
+                  "type": "integer"
+                },
+                "changed_db": {
+                  "type": "boolean"
+                },
+                "size_after": {
+                  "type": "integer"
+                },
+                "rows_read": {
+                  "type": "integer"
+                },
+                "rows_written": {
+                  "type": "integer"
+                }
+              }
+            },
+            "results": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/CookiePool"
+              }
+            }
+          }
+        },
+        "ShareUser": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "User ID."
+            },
+            "username": {
+              "type": "string",
+              "description": "Username."
+            }
+          }
+        },
+        "ShareUserListResponse": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean"
+            },
+            "meta": {
+              "type": "object",
+              "description": "Metadata about the query.",
+              "properties": {
+                "served_by": {
+                  "type": "string"
+                },
+                "duration": {
+                  "type": "integer"
+                },
+                "changes": {
+                  "type": "integer"
+                },
+                "last_row_id": {
+                  "type": "integer"
+                },
+                "changed_db": {
+                  "type": "boolean"
+                },
+                "size_after": {
+                  "type": "integer"
+                },
+                "rows_read": {
+                  "type": "integer"
+                },
+                "rows_written": {
+                  "type": "integer"
+                }
+              }
+            },
+            "results": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ShareUser"
+              }
+            }
+          }
+        }
+      }
+    },
+    "paths": {
+      "/api/auth/register": {
+        "post": {
+          "summary": "Register a new user.",
+          "tags": [
+            "Authentication"
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string"
+                    },
+                    "password": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful registration.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ApiResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/auth/login": {
+        "post": {
+          "summary": "User login.",
+          "tags": [
+            "Authentication"
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": {
+                      "type": "string"
+                    },
+                    "password": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful login.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/AuthResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/auth/me": {
+        "get": {
+          "summary": "Get user information.",
+          "tags": [
+            "Authentication"
+          ],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful retrieval of user information.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/AuthUser"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/pools/create": {
+        "post": {
+          "summary": "Create a new cookie pool.",
+          "tags": [
+            "Cookie Pool Management"
+          ],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "domain": {
+                      "type": "string"
+                    },
+                    "cookies": {
+                      "type": "string"
+                    },
+                    "isPublic": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Cookie pool created successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ApiResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/pools/get": {
+        "post": {
+          "summary": "Get a list of accessible cookie pools for a domain.",
+          "tags": [
+            "Cookie Pool Management"
+          ],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "domain": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful retrieval of cookie pool list.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/CookiePoolListResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/pools/getone": {
+        "post": {
+          "summary": "Get a single accessible cookie pool for a domain.",
+          "tags": [
+            "Cookie Pool Management"
+          ],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "domain": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful retrieval of a cookie pool.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/CookiePool"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/pools/put": {
+        "post": {
+          "summary": "Update an existing cookie pool.",
+          "tags": [
+            "Cookie Pool Management"
+          ],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "poolId": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "domain": {
+                      "type": "string"
+                    },
+                    "cookies": {
+                      "type": "string"
+                    },
+                    "isPublic": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Cookie pool updated successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ApiResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/pools/del": {
+        "post": {
+          "summary": "Delete a cookie pool.",
+          "tags": [
+            "Cookie Pool Management"
+          ],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "poolId": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Cookie pool deleted successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ApiResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/shares/users/add": {
+        "post": {
+          "summary": "Add a user to share a cookie pool.",
+          "tags": [
+            "Share Management"
+          ],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "poolId": {
+                      "type": "integer"
+                    },
+                    "userId": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User successfully added to share.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ApiResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/shares/users/del": {
+        "post": {
+          "summary": "Remove a user from sharing a cookie pool.",
+          "tags": [
+            "Share Management"
+          ],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "poolId": {
+                      "type": "integer"
+                    },
+                    "userId": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User successfully removed from share.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ApiResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/shares/users/list": {
+        "post": {
+          "summary": "Get a list of users sharing a cookie pool.",
+          "tags": [
+            "Share Management"
+          ],
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "poolId": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Successful retrieval of shared users list.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ShareUserListResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
